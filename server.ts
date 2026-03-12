@@ -7,6 +7,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log("Server starting in", process.env.NODE_ENV, "mode");
+if (process.env.VERCEL) {
+  console.log("Running on Vercel environment");
+}
+
 if (!process.env.DATABASE_URL) {
   console.warn("WARNING: DATABASE_URL is not set. Database features will fail.");
 }
@@ -22,6 +27,7 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 async function startServer() {
+  console.log("Initializing Express server...");
   const app = express();
   app.use(express.json());
   const PORT = 3000;
@@ -35,8 +41,9 @@ async function startServer() {
   // Health check / DB check
   app.get("/api/health", async (req, res) => {
     try {
+      await seedIfEmpty();
       await prisma.$queryRaw`SELECT 1`;
-      res.json({ status: "ok", database: "connected" });
+      res.json({ status: "ok", database: "connected", seeded });
     } catch (e) {
       res.status(500).json({ status: "error", message: "Database connection failed", details: e instanceof Error ? e.message : String(e) });
     }
@@ -45,6 +52,7 @@ async function startServer() {
   // Members
   app.get("/api/members", async (req, res) => {
     try {
+      await seedIfEmpty();
       const members = await prisma.member.findMany({
         orderBy: { name: 'asc' }
       });
@@ -300,7 +308,10 @@ async function startServer() {
 
 export const appPromise = startServer();
 
+// Run seeding check lazily on first health check or member fetch
+let seeded = false;
 async function seedIfEmpty() {
+  if (seeded) return;
   try {
     const count = await prisma.member.count();
     if (count === 0) {
@@ -311,13 +322,11 @@ async function seedIfEmpty() {
       }
       console.log("Seeding complete.");
     }
+    seeded = true;
   } catch (e) {
     console.error("Auto-seeding check failed:", e instanceof Error ? e.message : String(e));
   }
 }
-
-// Run seeding check once
-seedIfEmpty();
 
 appPromise.then((app) => {
   const PORT = 3000;

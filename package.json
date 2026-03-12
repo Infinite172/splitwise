@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "prisma generate && prisma db push && tsx server.ts",
-    "build": "prisma generate && prisma db push && vite build",
+    "build": "prisma generate && vite build",
     "postinstall": "prisma generate",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -16,7 +16,6 @@
     "@prisma/client": "^6.19.2",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
-    "better-sqlite3": "^12.4.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
