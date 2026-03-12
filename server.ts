@@ -1,12 +1,15 @@
 import "dotenv/config";
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+if (!process.env.DATABASE_URL) {
+  console.warn("WARNING: DATABASE_URL is not set. Database features will fail.");
+}
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
@@ -24,6 +27,10 @@ async function startServer() {
   const PORT = 3000;
 
   // --- API Routes ---
+
+  app.get("/api/ping", (req, res) => {
+    res.json({ status: "ok", message: "pong", env: process.env.NODE_ENV });
+  });
 
   // Health check / DB check
   app.get("/api/health", async (req, res) => {
@@ -266,6 +273,7 @@ async function startServer() {
 
   // --- Vite Middleware ---
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -292,31 +300,34 @@ async function startServer() {
 
 export const appPromise = startServer();
 
+async function seedIfEmpty() {
+  try {
+    const count = await prisma.member.count();
+    if (count === 0) {
+      console.log("Database empty, seeding initial members...");
+      const initialMembers = ['Pranish', 'Santosh', 'Prashant', 'Samrat', 'Kshitiz'];
+      for (const name of initialMembers) {
+        await prisma.member.create({ data: { name } });
+      }
+      console.log("Seeding complete.");
+    }
+  } catch (e) {
+    console.error("Auto-seeding check failed:", e instanceof Error ? e.message : String(e));
+  }
+}
+
+// Run seeding check once
+seedIfEmpty();
+
 appPromise.then((app) => {
   const PORT = 3000;
   if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-    app.listen(PORT, "0.0.0.0", async () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
-      
-      // Auto-seed if database is empty
-      try {
-        const count = await prisma.member.count();
-        if (count === 0) {
-          console.log("Database empty, seeding initial members...");
-          const initialMembers = ['Pranish', 'Santosh', 'Prashant', 'Samrat', 'Kshitiz'];
-          for (const name of initialMembers) {
-            await prisma.member.create({ data: { name } });
-          }
-          console.log("Seeding complete.");
-        }
-      } catch (e) {
-        console.error("Auto-seeding failed. This is expected if the database tables haven't been created yet via 'prisma db push'.", e);
-      }
     });
   }
 }).catch((err) => {
   console.error("Failed to start server:", err);
-  process.exit(1);
 });
 
 export default async (req: any, res: any) => {
