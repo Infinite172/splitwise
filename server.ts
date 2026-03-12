@@ -14,6 +14,8 @@ if (process.env.VERCEL) {
 
 if (!process.env.DATABASE_URL) {
   console.warn("WARNING: DATABASE_URL is not set. Database features will fail.");
+} else {
+  console.log("DATABASE_URL is set (length:", process.env.DATABASE_URL.length, ")");
 }
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
@@ -42,9 +44,18 @@ async function startServer() {
   app.get("/api/health", async (req, res) => {
     try {
       await seedIfEmpty();
-      await prisma.$queryRaw`SELECT 1`;
+      // Try to reconnect if the connection was closed
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+      } catch (connErr) {
+        console.warn("Initial DB check failed, attempting to reconnect...", connErr);
+        await prisma.$disconnect();
+        await prisma.$connect();
+        await prisma.$queryRaw`SELECT 1`;
+      }
       res.json({ status: "ok", database: "connected", seeded });
     } catch (e) {
+      console.error("Database health check failed:", e);
       res.status(500).json({ status: "error", message: "Database connection failed", details: e instanceof Error ? e.message : String(e) });
     }
   });

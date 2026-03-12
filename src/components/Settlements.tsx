@@ -14,6 +14,7 @@ export default function Settlements() {
   const [fromId, setFromId] = useState('');
   const [toId, setToId] = useState('');
   const [amount, setAmount] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +67,7 @@ export default function Settlements() {
       if (isNaN(amt) || amt <= 0) {
         throw new Error("Please enter a valid amount greater than 0");
       }
-      await createSettlement(parseInt(fromId), parseInt(toId), amt);
+      await createSettlement(parseInt(fromId), parseInt(toId), amt, new Date(date).toISOString());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -74,7 +75,7 @@ export default function Settlements() {
     }
   };
 
-  const createSettlement = async (from: number, to: number, amt: number) => {
+  const createSettlement = async (from: number, to: number, amt: number, settlementDate?: string) => {
     const res = await fetch('/api/settlements', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,7 +83,7 @@ export default function Settlements() {
         fromMemberId: from,
         toMemberId: to,
         amount: amt,
-        date: new Date().toISOString()
+        date: settlementDate || new Date().toISOString()
       })
     });
     
@@ -164,6 +165,16 @@ export default function Settlements() {
                 onChange={e => setAmount(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date</label>
+              <input
+                required
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
               />
             </div>
             <div className="md:col-span-3 flex justify-end gap-3">

@@ -17,10 +17,7 @@ export default function Sidebar() {
 
   return (
     <div className="h-screen w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col fixed left-0 top-0">
-      <div className="p-6 flex items-center gap-3">
-        <div className="p-2 bg-indigo-600 rounded-lg">
-          <Banknote className="w-6 h-6 text-white" />
-        </div>
+      <div className="p-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
           SplitWise
         </h1>

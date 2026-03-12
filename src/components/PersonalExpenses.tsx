@@ -16,6 +16,7 @@ export default function PersonalExpenses() {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Food');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,7 +36,8 @@ export default function PersonalExpenses() {
         if (res.ok) {
           setMembers(Array.isArray(data) ? data : []);
           if (Array.isArray(data) && data.length > 0) {
-            setSelectedMemberId(data[0].id);
+            const pranish = data.find((m: Member) => m.name.toLowerCase() === 'pranish');
+            setSelectedMemberId(pranish ? pranish.id : data[0].id);
           }
         } else {
           setError(data.error || 'Failed to load members');
@@ -83,7 +85,7 @@ export default function PersonalExpenses() {
           title,
           amount,
           category,
-          date: new Date().toISOString()
+          date: new Date(date).toISOString()
         })
       });
 
@@ -177,6 +179,16 @@ export default function PersonalExpenses() {
               >
                 {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date</label>
+              <input
+                required
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              />
             </div>
             <div className="md:col-span-3 flex justify-end gap-3">
               <button

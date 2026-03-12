@@ -15,6 +15,7 @@ export default function SharedExpenses() {
   const [splitType, setSplitType] = useState<'EQUAL' | 'CUSTOM' | 'PERCENTAGE'>('EQUAL');
   const [selectedParticipants, setSelectedParticipants] = useState<number[]>([]);
   const [customSplits, setCustomSplits] = useState<Record<number, string>>({});
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     fetchData();
@@ -102,7 +103,7 @@ export default function SharedExpenses() {
           amount: totalAmount,
           paidById,
           splitType,
-          date: new Date().toISOString(),
+          date: new Date(date).toISOString(),
           splits
         })
       });
@@ -193,6 +194,16 @@ export default function SharedExpenses() {
                   {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date</label>
+                <input
+                  required
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                />
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -239,21 +250,23 @@ export default function SharedExpenses() {
               )}
 
               {splitType === 'CUSTOM' && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Custom Amounts</label>
-                  {members.map(m => (
-                    <div key={m.id} className="flex items-center gap-3">
-                      <span className="text-sm w-24 text-zinc-600 dark:text-zinc-400">{m.name}</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={customSplits[m.id] || ''}
-                        onChange={e => setCustomSplits({ ...customSplits, [m.id]: e.target.value })}
-                        className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 outline-none"
-                      />
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {members.map(m => (
+                      <div key={m.id} className="grid grid-cols-[100px_1fr] items-center gap-3">
+                        <span className="text-sm text-zinc-600 dark:text-zinc-400 truncate">{m.name}</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={customSplits[m.id] || ''}
+                          onChange={e => setCustomSplits({ ...customSplits, [m.id]: e.target.value })}
+                          className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
