@@ -11,9 +11,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100">
+        <div className="min-h-screen">
           <Sidebar />
-          <main className="pl-64 min-h-screen">
+          <main className="lg:pl-64 min-h-screen pt-16 lg:pt-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/shared" element={<SharedExpenses />} />

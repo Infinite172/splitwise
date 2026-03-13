@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { Wallet, Plus, Trash2, Tag } from 'lucide-react';
+import { Wallet, Plus, Trash2, Tag, Download } from 'lucide-react';
 import { Member, PersonalExpense } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CATEGORIES = ['Food', 'Travel', 'Rent', 'Shopping', 'Utilities', 'Other'];
 const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308'];
@@ -113,40 +115,81 @@ export default function PersonalExpenses() {
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const memberName = members.find(m => m.id === selectedMemberId)?.name || 'Member';
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(99, 102, 241); // Indigo-600
+    doc.text(`Personal Expense Report: ${memberName}`, 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    doc.text(`Total Spent: INR ${totalSpent.toFixed(2)}`, 14, 36);
+    
+    // Table
+    const tableData = expenses.map(e => [
+      new Date(e.date).toLocaleDateString(),
+      e.title,
+      e.category,
+      `INR ${e.amount.toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 45,
+      head: [['Date', 'Title', 'Category', 'Amount']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [99, 102, 241] },
+      styles: { fontSize: 9 },
+    });
+
+    doc.save(`personal-expenses-${memberName.toLowerCase()}.pdf`);
+  };
+
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <header>
-          <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">Personal Finance</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">Track your private spending and habits.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Personal Finance</h2>
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">Track your private spending and habits.</p>
         </header>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <select
             value={selectedMemberId || ''}
             onChange={e => setSelectedMemberId(parseInt(e.target.value))}
-            className="px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm sm:text-base"
           >
             {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
           <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
+            onClick={downloadPDF}
+            className="flex-1 sm:flex-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm sm:text-base"
           >
-            <Plus className="w-5 h-5" />
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            Export PDF
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 text-sm sm:text-base"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             Add Expense
           </button>
         </div>
       </div>
 
       {showForm && (
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>

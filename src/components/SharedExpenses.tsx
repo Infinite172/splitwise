@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Calendar, Info } from 'lucide-react';
+import { Plus, Trash2, Calendar, Info, Download } from 'lucide-react';
 import { Member, SharedExpense } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function SharedExpenses() {
   const [expenses, setExpenses] = useState<SharedExpense[]>([]);
@@ -133,26 +135,72 @@ export default function SharedExpenses() {
     }
   };
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(79, 70, 229); // Indigo-600
+    doc.text('Shared Expenses Report', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    
+    // Table
+    const tableData = expenses.map(e => [
+      new Date(e.date).toLocaleDateString(),
+      e.title,
+      e.paidBy.name,
+      `INR ${e.amount.toFixed(2)}`,
+      e.splitType,
+      e.splits.map(s => `${s.member.name}: ₹${s.amountOwed.toFixed(2)}`).join('\n')
+    ]);
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Date', 'Title', 'Paid By', 'Amount', 'Split', 'Breakdown']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        5: { cellWidth: 50 }
+      }
+    });
+
+    doc.save('shared-expenses.pdf');
+  };
+
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <header>
-          <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">Shared Expenses</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">Manage and split costs with your roommates.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Shared Expenses</h2>
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">Manage and split costs with your roommates.</p>
         </header>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
-        >
-          <Plus className="w-5 h-5" />
-          Add Expense
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            onClick={downloadPDF}
+            className="flex-1 sm:flex-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm sm:text-base"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            Export PDF
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 text-sm sm:text-base"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            Add Expense
+          </button>
+        </div>
       </div>
 
       {showForm && (
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
               {error}
@@ -294,12 +342,12 @@ export default function SharedExpenses() {
       <div className="grid grid-cols-1 gap-4">
         {expenses.map(exp => (
           <div key={exp.id} className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl shrink-0">
                 <ReceiptIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <div>
-                <h4 className="text-lg font-bold text-zinc-900 dark:text-white">{exp.title}</h4>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-lg font-bold text-zinc-900 dark:text-white truncate">{exp.title}</h4>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-500">
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(exp.date).toLocaleDateString()}</span>
                   <span>Paid by <span className="font-medium text-zinc-700 dark:text-zinc-300">{exp.paidBy.name}</span></span>
@@ -307,9 +355,9 @@ export default function SharedExpenses() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-zinc-900 dark:text-white">₹{exp.amount.toFixed(2)}</p>
+            <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-4 sm:pt-0">
+              <div className="text-left sm:text-right">
+                <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">₹{exp.amount.toFixed(2)}</p>
                 <p className="text-xs text-zinc-400">{exp.splits.length} participants</p>
               </div>
               <button

@@ -1,14 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
 @theme {
+  --dark-mode: class;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
 }
 
 @layer base {
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  html::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
-    @apply font-sans antialiased;
+    @apply font-sans antialiased bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100;
   }
   
   h1, h2, h3, h4 {
@@ -28,5 +48,10 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Add gap for arrows in select and date inputs */
+select, input[type="date"] {
+  padding-right: 2.5rem !important;
 }
 

@@ -81,13 +81,13 @@ export default function Dashboard() {
   const totalShared = recentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
       <header>
-        <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">Dashboard</h2>
-        <p className="text-zinc-500 dark:text-zinc-400">Welcome back! Here's what's happening in your shared space.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Dashboard</h2>
+        <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">Welcome back! Here's what's happening in your shared space.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           title="Total Shared (Recent)"
           value={`₹${totalShared.toLocaleString()}`}

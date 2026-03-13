@@ -83,10 +83,10 @@ export default function Members() {
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="p-8 space-y-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-8 max-w-4xl mx-auto">
       <header>
-        <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">Member Management</h2>
-        <p className="text-zinc-500 dark:text-zinc-400">Add or remove roommates from the system.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Member Management</h2>
+        <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">Add or remove roommates from the system.</p>
       </header>
 
       {error && (
@@ -95,23 +95,23 @@ export default function Members() {
         </div>
       )}
 
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <form onSubmit={handleAdd} className="flex gap-3">
+      <section className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
           <input
             required
             value={newName}
             onChange={e => setNewName(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            className="flex-1 px-4 py-2 sm:py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm sm:text-base"
             placeholder="Enter new member name..."
           />
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 text-sm sm:text-base"
           >
             {isSubmitting ? "Adding..." : (
               <>
-                <UserPlus className="w-5 h-5" />
+                <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
                 Add Member
               </>
             )}
@@ -121,14 +121,14 @@ export default function Members() {
 
       <div className="grid grid-cols-1 gap-4">
         {members.map(m => (
-          <div key={m.id} className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-                <User className="w-6 h-6" />
+          <div key={m.id} className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+                <User className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-zinc-900 dark:text-white">{m.name}</h4>
-                <p className="text-sm text-zinc-500">Joined {new Date(m.createdAt).toLocaleDateString()}</p>
+                <h4 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">{m.name}</h4>
+                <p className="text-xs sm:text-sm text-zinc-500">Joined {new Date(m.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -139,9 +139,9 @@ export default function Members() {
                 title="Delete Member"
               >
                 {isDeleting === m.id ? (
-                  <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -149,9 +149,9 @@ export default function Members() {
         ))}
       </div>
 
-      <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800 flex gap-4">
-        <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
-        <p className="text-sm text-indigo-700 dark:text-indigo-300">
+      <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 sm:p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800 flex gap-3 sm:gap-4">
+        <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
+        <p className="text-xs sm:text-sm text-indigo-700 dark:text-indigo-300">
           <strong>Note:</strong> Members can only be removed if they have no associated expenses, splits, or settlements. This ensures data integrity.
         </p>
       </div>

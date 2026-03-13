@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, History, ArrowRight, Plus, ArrowUpRight, Loader2 } from 'lucide-react';
+import { CheckCircle2, History, ArrowRight, Plus, ArrowUpRight, Loader2, Download } from 'lucide-react';
 import { Member, Settlement, BalancesResponse } from '../types';
 import { motion } from 'motion/react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function Settlements() {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
@@ -105,26 +107,67 @@ export default function Settlements() {
     setIsSettling(null);
   };
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(16, 185, 129); // Emerald-600
+    doc.text('Settlement History Report', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    
+    // Table
+    const tableData = settlements.map(s => [
+      new Date(s.date).toLocaleDateString(),
+      s.fromMember.name,
+      s.toMember.name,
+      `INR ${s.amount.toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Date', 'From (Debtor)', 'To (Creditor)', 'Amount']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129] },
+      styles: { fontSize: 9 },
+    });
+
+    doc.save('settlement-history.pdf');
+  };
+
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <header>
-          <h2 className="text-3xl font-bold text-zinc-900 dark:text-white">Settlements</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">Record payments and clear debts between roommates.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Settlements</h2>
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">Record payments and clear debts between roommates.</p>
         </header>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
-        >
-          <Plus className="w-5 h-5" />
-          Record Payment
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            onClick={downloadPDF}
+            className="flex-1 sm:flex-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm sm:text-base"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            Export PDF
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 text-sm sm:text-base"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            Record Payment
+          </button>
+        </div>
       </div>
 
       {showForm && (
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl animate-in fade-in slide-in-from-top-4">
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
               {error}
@@ -212,20 +255,20 @@ export default function Settlements() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   key={idx}
-                  className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl group"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl group gap-4"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <span className="font-medium text-zinc-900 dark:text-white">{from}</span>
                     <ArrowUpRight className="w-4 h-4 text-red-500" />
                     <span className="font-medium text-zinc-900 dark:text-white">{to}</span>
-                    <span className="ml-4 text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                       ₹{s.amount.toFixed(2)}
                     </span>
                   </div>
                   <button
                     onClick={() => handleMarkAsSettled(s.from, s.to, s.amount, idx)}
                     disabled={isSettling === idx}
-                    className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
                   >
                     {isSettling === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     Mark as Settled
